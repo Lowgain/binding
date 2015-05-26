@@ -121,6 +121,22 @@ func MultipartForm(formStruct interface{}, ifacePtr ...interface{}) martini.Hand
 
 }
 
+// QueryString works much like Form, except it parses the request's query string
+// as opposed to a form-urlencoded body. Like the other deserialization middleware handlers,
+// you can pass in an interface to make the interface available for injection
+// into other handlers later.
+func QueryString(formStruct interface{}, ifacePtr ...interface{}) martini.Handler {
+	return func(context martini.Context, req *http.Request) {
+		var errors Errors
+
+		ensureNotPointer(formStruct)
+		formStruct := reflect.New(reflect.TypeOf(formStruct))
+
+		mapForm(formStruct, req.URL.Query(), nil, errors)
+		validateAndMap(formStruct, context, errors, ifacePtr...)
+	}
+}
+
 // Json is middleware to deserialize a JSON payload from the request
 // into the struct that is passed in. The resulting struct is then
 // validated, but no error handling is actually performed here.
